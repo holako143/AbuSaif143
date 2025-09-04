@@ -70,6 +70,7 @@
 .fa-chevron-left::before { content: "\f053"; }
 .fa-eye::before { content: "\f06e"; }
 .fa-eye-slash::before { content: "\f070"; }
+.fa-grip-vertical::before { content: "\f58e"; }
 
 /* ========== CSS Variables ========== */
 :root {
@@ -309,6 +310,33 @@ body {
     font-weight: 600;
     color: var(--primary);
     font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.advanced-options h3::after {
+    content: '\f077'; /* fa-chevron-up */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    transition: transform var(--transition);
+}
+
+.advanced-options h3.collapsed::after {
+    transform: rotate(180deg);
+}
+
+.advanced-options-content {
+    max-height: 1000px;
+    overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.4s ease;
+    opacity: 1;
+}
+
+.advanced-options-content.collapsed {
+    max-height: 0;
+    opacity: 0;
 }
 
 .option-item {
@@ -338,6 +366,12 @@ body {
     background: rgba(15, 23, 42, 0.8);
     border-color: rgba(71, 85, 105, 0.5);
     color: var(--text-dark);
+}
+
+/* Drag and Drop Styles */
+#customEmojiList .dragging {
+    opacity: 0.5;
+    background: rgba(102, 126, 234, 0.1);
 }
 
 /* Custom Container for Textarea Actions */
@@ -580,21 +614,7 @@ label {
 }
 
 .slider-control {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(226, 232, 240, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all var(--transition);
-    z-index: 2;
-    box-shadow: var(--shadow);
+    display: none;
 }
 
 .slider-control:hover {
@@ -994,12 +1014,25 @@ body.sidebar-open {
     background: linear-gradient(135deg, #64748b, #475569);
 }
 
-/* ========== Input Actions ========== */
-.input-actions {
+/* ========== Textarea Actions ========== */
+.textarea-container {
+    position: relative;
+}
+
+#inputText, #output {
+    /* Adjust padding for RTL layout */
+    padding-left: 55px;
+    padding-right: 1rem;
+}
+
+.input-actions, .output-actions {
+    position: absolute;
+    top: 1rem;
+    left: 1rem; /* In RTL, left is on the right side */
     display: flex;
-    justify-content: flex-end;
+    flex-direction: column;
     gap: 0.5rem;
-    margin-bottom: 0.75rem;
+    z-index: 5;
 }
 
 .icon-btn {
@@ -1007,9 +1040,9 @@ body.sidebar-open {
     color: var(--text-gray);
     border: 1px solid rgba(226, 232, 240, 0.5);
     border-radius: var(--radius);
-    width: 40px;
-    height: 40px;
-    font-size: 1.1rem;
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
     cursor: pointer;
     transition: all var(--transition);
     display: flex;
@@ -1025,49 +1058,6 @@ body.sidebar-open {
 }
 
 .dark .icon-btn {
-    background: rgba(51, 65, 85, 0.8);
-    border-color: rgba(71, 85, 105, 0.5);
-    color: var(--text-dark);
-}
-
-/* Custom Container for Output Textarea Actions */
-#output {
-    padding-left: 60px; /* Space for buttons */
-}
-
-.output-actions {
-    position: absolute;
-    top: 0.75rem;
-    left: 0.75rem; /* RTL support means this is on the right */
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-/* Ensure output action buttons are styled like icon buttons */
-.output-actions .icon-btn {
-    background: rgba(241, 245, 249, 0.8);
-    color: var(--text-gray);
-    border: 1px solid rgba(226, 232, 240, 0.5);
-    border-radius: var(--radius);
-    width: 40px;
-    height: 40px;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: all var(--transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.output-actions .icon-btn:hover {
-    background: var(--primary);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: var(--shadow);
-}
-
-.dark .output-actions .icon-btn {
     background: rgba(51, 65, 85, 0.8);
     border-color: rgba(71, 85, 105, 0.5);
     color: var(--text-dark);
