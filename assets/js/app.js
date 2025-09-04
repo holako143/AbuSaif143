@@ -5,11 +5,6 @@
 const $ = (id) => document.getElementById(id);
 const defaultEmojis = ['😎', '✨', '❤️', '🔒', '🔥', '🌟', '🎯', '💡', '🚀', '💎', '📌', '✅', '⚡', '🌈', '🌠'];
 
-// QR Code Globals
-let qrcode = null;
-let videoStream = null;
-let animationFrameId = null;
-
 // ========== Helper Functions ==========
 // Helper functions for robust Base64 encoding/decoding to handle binary data correctly
 function bytesToBase64(bytes) {
@@ -525,77 +520,38 @@ async function decodeText() {
         return;
     }
 
-    showToast('جاري فك التشفير...', 'info', 1000);
+    showToast('جاري فك التشفير والبحث عن رسائل...', 'info');
 
-    const result = await decodeSingleMessage(src);
-
-    if (result && result.text !== null) {
-        output.value = result.text;
-        output.classList.add('has-content');
-
-        updateStats(result.stats.originalSize, result.stats.compressedSize, result.text.length);
-
-        if (appSettings.autoCopyDecodedText) {
-            await copyToClipboard(result.text);
-            showToast(`تم فك تشفير النص ونسخ النتيجة تلقائياً`, 'success');
-        } else {
-            showToast(`تم فك تشفير النص بنجاح`, 'success');
-        }
-
-        showResultsSection();
-    }
-}
-
-async function decodeMultipleText() {
-    const inputText = $('inputText');
-    const output = $('output');
-
-    if (!inputText || !output) {
-        showToast('عناصر الواجهة غير متوفرة', 'error');
-        return;
-    }
-
-    const src = inputText.value.trim();
-    if (!src) {
-        showToast('يرجى إدخال نص مشفر', 'error');
-        return;
-    }
-
-    showToast('جاري البحث عن رسائل متعددة...', 'info');
-
+    // First, try to decode multiple messages
     const emojiRegex = new RegExp(`(${emojiList.map(e => e.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g');
-
     const matches = [...src.matchAll(emojiRegex)];
-
-    if (matches.length === 0) {
-        showToast('لم يتم العثور على أي إيموجي معروف للبدء به.', 'error');
-        return;
-    }
-
     let decodedCount = 0;
     let decodedOutputs = [];
     let totalOriginalSize = 0;
     let totalCompressedSize = 0;
 
-    for (const match of matches) {
-        const potentialMessage = src.substring(match.index);
-        try {
-            const result = await decodeSingleMessage(potentialMessage, { showToasts: false });
-            if (result && result.text) {
-                decodedOutputs.push(result.text);
-                decodedCount++;
-                totalOriginalSize += result.stats.originalSize || 0;
-                totalCompressedSize += result.stats.compressedSize || 0;
+    if (matches.length > 0) {
+        for (const match of matches) {
+            const potentialMessage = src.substring(match.index);
+            try {
+                const result = await decodeSingleMessage(potentialMessage, { showToasts: false });
+                if (result && result.text) {
+                    decodedOutputs.push(result.text);
+                    decodedCount++;
+                    totalOriginalSize += result.stats.originalSize || 0;
+                    totalCompressedSize += result.stats.compressedSize || 0;
+                }
+            } catch (e) {
+                if (e.message === "Password required") {
+                    showToast(`رسالة مشفرة بكلمة سر، يرجى إدخال كلمة السر ثم المحاولة مجدداً`, 'error');
+                    return; // Stop processing if a password is required
+                }
+                // Ignore other errors, as they are likely just non-message parts of the text
             }
-        } catch (e) {
-            if (e.message === "Password required") {
-                showToast(`رسالة مشفرة بكلمة سر، يرجى إدخال كلمة السر ثم المحاولة مجدداً`, 'error');
-                return;
-            }
-            console.log("Could not decode potential message at index " + match.index, e);
         }
     }
 
+    // If multiple messages were found, display them
     if (decodedCount > 0) {
         output.value = `--- تم العثور على ${decodedCount} رسالة ---\n\n` + decodedOutputs.join('\n\n----------\n\n');
         output.classList.add('has-content');
@@ -603,7 +559,21 @@ async function decodeMultipleText() {
         showToast(`تم فك تشفير ${decodedCount} رسالة بنجاح.`, 'success');
         showResultsSection();
     } else {
-        showToast('تم البحث ولكن لم يتم العثور على رسائل مشفرة صالحة.', 'warning');
+        // If no multiple messages were found, try to decode the whole string as a single message
+        const result = await decodeSingleMessage(src, { showToasts: true });
+        if (result && result.text !== null) {
+            output.value = result.text;
+            output.classList.add('has-content');
+            updateStats(result.stats.originalSize, result.stats.compressedSize, result.text.length);
+            if (appSettings.autoCopyDecodedText) {
+                await copyToClipboard(result.text);
+                showToast(`تم فك تشفير النص ونسخ النتيجة تلقائياً`, 'success');
+            } else {
+                showToast(`تم فك تشفير النص بنجاح`, 'success');
+            }
+            showResultsSection();
+        }
+        // If single decode also fails, the error toast is shown inside decodeSingleMessage
     }
 }
 
@@ -956,9 +926,11 @@ function renderCustomEmojiList() {
         const emojiRow = document.createElement('div');
         emojiRow.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; background: rgba(255,255,255,0.8); border-radius: 0.75rem; margin-bottom: 0.5rem; border: 1px solid rgba(226,232,240,0.5);';
 
+        emojiRow.draggable = true;
+        emojiRow.dataset.emoji = emoji;
         emojiRow.innerHTML = `
             <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <span style="font-size: 1.5rem;">${emoji}</span>
+                <span style="font-size: 1.5rem; cursor: grab;"><i class="fas fa-grip-vertical" style="margin-left: 0.5rem; color: #9ca3af;"></i>${emoji}</span>
             </div>
             <button style="color: #ef4444; background: none; border: none; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s;" title="حذف الإيموجي">
                 <i class="fas fa-trash"></i>
@@ -1260,51 +1232,72 @@ function loadHistory() {
     }
 }
 
+// ========== Drag and Drop for Emoji List ==========
+
+let draggedItem = null;
+
+function handleDragStart(e) {
+    // Works on the row div, which has draggable=true
+    if (e.target.dataset.emoji) {
+        draggedItem = e.target;
+        e.target.classList.add('dragging');
+    }
+}
+
+function handleDragEnd(e) {
+    if (draggedItem) {
+        e.target.classList.remove('dragging');
+        draggedItem = null;
+    }
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    const dropTarget = e.target.closest('[draggable="true"]');
+    if (dropTarget && draggedItem && dropTarget !== draggedItem) {
+        const fromEmoji = draggedItem.dataset.emoji;
+        const toEmoji = dropTarget.dataset.emoji;
+        const fromIndex = emojiList.indexOf(fromEmoji);
+        const toIndex = emojiList.indexOf(toEmoji);
+
+        if (fromIndex !== -1 && toIndex !== -1) {
+            // Reorder array
+            emojiList.splice(fromIndex, 1);
+            emojiList.splice(toIndex, 0, fromEmoji);
+
+            // Save and re-render
+            saveEmojis();
+            renderEmojis();
+            renderCustomEmojiList(); // Re-render the management list specifically
+        }
+    }
+    if (draggedItem) {
+        draggedItem.style.opacity = '1';
+        draggedItem = null;
+    }
+}
+
+
 // ========== Event Setup ==========
 
 function setupEventListeners() {
     // Encode/Decode buttons
     const encodeBtn = $('encodeBtn');
     const decodeBtn = $('decodeBtn');
-    const decodeMultipleBtn = $('decodeMultipleBtn');
 
     if (encodeBtn) encodeBtn.addEventListener('click', encodeText);
     if (decodeBtn) decodeBtn.addEventListener('click', decodeText);
-    if (decodeMultipleBtn) decodeMultipleBtn.addEventListener('click', decodeMultipleText);
 
     // Input action buttons
     const deleteBtn = $('deleteBtn');
     const pasteBtn = $('pasteBtn');
-    const qrBtn = $('qrBtn');
 
     if (deleteBtn) deleteBtn.addEventListener('click', clearInput);
     if (pasteBtn) pasteBtn.addEventListener('click', pasteFromClipboard);
-    if (qrBtn) qrBtn.addEventListener('click', handleQrButtonClick);
-
-    // QR Modal listeners
-    const closeQrModal = $('closeQrModal');
-    const closeScannerModal = $('closeScannerModal');
-    const qrModal = $('qrModal');
-    const scannerModal = $('scannerModal');
-
-    if (closeQrModal) closeQrModal.addEventListener('click', () => qrModal.classList.add('hidden'));
-    if (closeScannerModal) closeScannerModal.addEventListener('click', stopScanner);
-
-    // Close modal on overlay click
-    if (qrModal) {
-        qrModal.addEventListener('click', (e) => {
-            if (e.target === qrModal) {
-                qrModal.classList.add('hidden');
-            }
-        });
-    }
-    if (scannerModal) {
-        scannerModal.addEventListener('click', (e) => {
-            if (e.target === scannerModal) {
-                stopScanner();
-            }
-        });
-    }
 
     // Text input monitoring
     const inputText = $('inputText');
@@ -1333,11 +1326,13 @@ function setupEventListeners() {
     }
 
     // Navigation buttons
+    const logo = document.querySelector('.logo');
     const menuToggle = $('menuToggle');
     const closeSidebarBtn = $('closeSidebar');
     const resetBtn = $('resetBtn');
     const toggleThemeBtn = $('toggleTheme');
 
+    if (logo) logo.addEventListener('click', () => switchTab('cipher'));
     if (menuToggle) menuToggle.addEventListener('click', toggleSidebar);
     if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
     if (resetBtn) resetBtn.addEventListener('click', resetApp);
@@ -1380,6 +1375,25 @@ function setupEventListeners() {
 
     if (resetEmojiBtn) resetEmojiBtn.addEventListener('click', resetEmojiList);
     if (clearHistoryBtn) clearHistoryBtn.addEventListener('click', clearHistory);
+
+    // Drag and drop for emoji list
+    const customEmojiList = $('customEmojiList');
+    if (customEmojiList) {
+        customEmojiList.addEventListener('dragstart', handleDragStart);
+        customEmojiList.addEventListener('dragover', handleDragOver);
+        customEmojiList.addEventListener('drop', handleDrop);
+        customEmojiList.addEventListener('dragend', handleDragEnd);
+    }
+
+    // Advanced options toggle
+    const advancedOptionsToggle = $('advancedOptionsToggle');
+    if (advancedOptionsToggle) {
+        advancedOptionsToggle.addEventListener('click', () => {
+            const content = document.querySelector('.advanced-options-content');
+            content.classList.toggle('collapsed');
+            advancedOptionsToggle.classList.toggle('collapsed');
+        });
+    }
 
     // Password settings
     const useEncrypt = $('useEncrypt');
@@ -1647,123 +1661,6 @@ async function pasteFromClipboard() {
         console.error('Failed to read clipboard contents: ', err);
         showToast('فشل في قراءة الحافظة. يرجى منح الإذن.', 'error');
     }
-}
-
-function handleQrButtonClick() {
-    const output = $('output');
-    if (output && output.value.trim() !== '') {
-        generateQRCode();
-    } else {
-        openScanner();
-    }
-}
-
-function generateQRCode() {
-    const output = $('output');
-    const qrContainer = $('qrcode-container');
-    const qrModal = $('qrModal');
-    if (!output || !qrContainer || !qrModal) return;
-
-    const text = output.value;
-    if (text.length === 0) {
-        showToast('لا يوجد محتوى لإنشاء رمز QR', 'warning');
-        return;
-    }
-
-    qrContainer.innerHTML = ''; // Clear previous QR code
-
-    try {
-        qrcode = new QRCode(qrContainer, {
-            text: text,
-            width: 256,
-            height: 256,
-            colorDark : "#000000",
-            colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.H
-        });
-        qrModal.classList.remove('hidden');
-    } catch (err) {
-        console.error("QR Code generation failed: ", err);
-        showToast('فشل في إنشاء رمز QR', 'error');
-    }
-}
-
-function openScanner() {
-    const scannerModal = $('scannerModal');
-    const video = $('scannerVideo');
-    const scannerMessage = $('scannerMessage');
-
-    if (!scannerModal || !video || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        showToast('متصفحك لا يدعم الوصول للكاميرا.', 'error');
-        return;
-    }
-
-    scannerModal.classList.remove('hidden');
-    scannerMessage.textContent = 'جاري طلب الوصول إلى الكاميرا...';
-
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-        .then(function(stream) {
-            videoStream = stream;
-            video.srcObject = stream;
-            video.play();
-            scannerMessage.textContent = 'وجّه الكاميرا نحو رمز QR';
-            animationFrameId = requestAnimationFrame(tick);
-        })
-        .catch(function(err) {
-            console.error("Error accessing camera: ", err);
-            scannerMessage.textContent = 'فشل الوصول إلى الكاميرا. يرجى منح الإذن.';
-            showToast('فشل الوصول إلى الكاميرا', 'error');
-        });
-}
-
-function stopScanner() {
-    if (videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
-        videoStream = null;
-    }
-    if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-        animationFrameId = null;
-    }
-    const scannerModal = $('scannerModal');
-    if (scannerModal) {
-        scannerModal.classList.add('hidden');
-    }
-}
-
-function tick() {
-    const video = $('scannerVideo');
-    const canvasElement = $('scannerCanvas');
-    const canvas = canvasElement.getContext('2d');
-    const inputText = $('inputText');
-    const scannerMessage = $('scannerMessage');
-
-    if (!video || !canvasElement || !inputText || !scannerMessage) return;
-
-    if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvasElement.height = video.videoHeight;
-        canvasElement.width = video.videoWidth;
-        canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-
-        try {
-            const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                inversionAttempts: "dontInvert",
-            });
-
-            if (code && code.data) {
-                scannerMessage.textContent = `تم العثور على رمز!`;
-                showToast('تم العثور على رمز QR بنجاح!', 'success');
-                inputText.value = code.data;
-                updateCharCount();
-                stopScanner();
-                return;
-            }
-        } catch (e) {
-            console.error("jsQR error: ", e);
-        }
-    }
-    animationFrameId = requestAnimationFrame(tick);
 }
 
 function applySettings() {
