@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icon Generator - Emoji Cipher Pro</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+        }
+        .icon-preview {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+        }
+        .sizes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .size-item {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+        }
+        .size-preview {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 10px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+        button {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 Emoji Cipher Pro Icons</h1>
+        <p>مولد الأيقونات للتطبيق</p>
+        
+        <div class="icon-preview" id="mainIcon">
+            🔒
+        </div>
+        
+        <div class="sizes">
+            <div class="size-item">
+                <div class="size-preview">🔒</div>
+                <div>72x72</div>
+                <button onclick="generateIcon(72)">إنشاء</button>
+            </div>
+            <div class="size-item">
+                <div class="size-preview">🔒</div>
+                <div>96x96</div>
+                <button onclick="generateIcon(96)">إنشاء</button>
+            </div>
+            <div class="size-item">
+                <div class="size-preview">🔒</div>
+                <div>128x128</div>
+                <button onclick="generateIcon(128)">إنشاء</button>
+            </div>
+            <div class="size-item">
+                <div class="size-preview">🔒</div>
+                <div>144x144</div>
+                <button onclick="generateIcon(144)">إنشاء</button>
+            </div>
+            <div class="size-item">
+                <div class="size-preview">🔒</div>
+                <div>152x152</div>
+                <button onclick="generateIcon(152)">إنشاء</button>
+            </div>
+            <div class="size-item">
+                <div class="size-preview">🔒</div>
+                <div>192x192</div>
+                <button onclick="generateIcon(192)">إنشاء</button>
+            </div>
+            <div class="size-item">
+                <div class="size-preview">🔒</div>
+                <div>384x384</div>
+                <button onclick="generateIcon(384)">إنشاء</button>
+            </div>
+            <div class="size-item">
+                <div class="size-preview">🔒</div>
+                <div>512x512</div>
+                <button onclick="generateIcon(512)">إنشاء</button>
+            </div>
+        </div>
+        
+        <button onclick="generateAllIcons()" style="margin-top: 20px; font-size: 18px; padding: 15px 30px;">
+            إنشاء جميع الأيقونات
+        </button>
+    </div>
+
+    <script>
+        function generateIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#6366f1');
+            gradient.addColorStop(1, '#4f46e5');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Add rounded corners
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, size * 0.1);
+            ctx.fill();
+            ctx.globalCompositeOperation = 'source-over';
+            
+            // Add lock icon
+            ctx.fillStyle = 'white';
+            ctx.font = `${size * 0.4}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🔒', size / 2, size / 2);
+            
+            // Download
+            const link = document.createElement('a');
+            link.download = `icon-${size}x${size}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        function generateAllIcons() {
+            const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+            sizes.forEach((size, index) => {
+                setTimeout(() => generateIcon(size), index * 500);
+            });
+        }
+        
+        // Add roundRect polyfill for older browsers
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+                this.closePath();
+            };
+        }
+    </script>
+</body>
+</html>
