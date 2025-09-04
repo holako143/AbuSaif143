@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Emoji Cipher Pro — تشفير النصوص داخل إيموجي واحد</title>
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="تطبيق تشفير النصوص داخل الإيموجي - يعمل بدون إنترنت">
+    <meta name="keywords" content="تشفير, إيموجي, نص, أمان, خصوصية">
+    <meta name="author" content="Emoji Cipher Pro Team">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Emoji Cipher Pro">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="./assets/css/app.css">
+</head>
+<body class="theme-default">
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <div class="logo-text">Emoji Cipher Pro</div>
+        </div>
+        
+        <div class="nav-icons">
+            <div class="nav-icon" id="toggleTheme" title="تبديل الثيم">
+                <i class="fas fa-moon"></i>
+            </div>
+            <div class="nav-icon" id="resetBtn" title="إعادة تعيين التطبيق">
+                <i class="fas fa-redo"></i>
+            </div>
+            <div class="nav-icon" id="menuToggle" title="فتح القائمة">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>الإعدادات والقوائم</h2>
+            <div class="nav-icon" id="closeSidebar" title="إغلاق القائمة">
+                <i class="fas fa-times"></i>
+            </div>
+        </div>
+        
+        <div class="sidebar-tabs">
+            <div class="sidebar-tab active" data-tab="cipher">
+                <i class="fas fa-lock"></i>
+                <span>التشفير وفك التشفير</span>
+            </div>
+            <div class="sidebar-tab" data-tab="history">
+                <i class="fas fa-history"></i>
+                <span>سجل التشفير</span>
+            </div>
+            <div class="sidebar-tab" data-tab="settings">
+                <i class="fas fa-cog"></i>
+                <span>الإعدادات</span>
+            </div>
+            <div class="sidebar-tab" data-tab="emoji">
+                <i class="fas fa-smile"></i>
+                <span>إدارة الإيموجي</span>
+            </div>
+            <div class="sidebar-tab" data-tab="help">
+                <i class="fas fa-question-circle"></i>
+                <span>المساعدة</span>
+            </div>
+        </div>
+        
+        <div class="sidebar-content">
+            <div class="advanced-options">
+                <h3>خيارات متقدمة</h3>
+                
+                <div class="option-item">
+                    <label for="useCompression">
+                        <input id="useCompression" type="checkbox" checked/>
+                        <i class="fas fa-compress-alt"></i>
+                        ضغط النص
+                    </label>
+                </div>
+
+                <div class="option-item">
+                    <label for="autoCopyEncodedEmoji">
+                        <input id="autoCopyEncodedEmoji" type="checkbox" checked/>
+                        <i class="fas fa-copy"></i>
+                        نسخ تلقائي للإيموجي المشفر
+                    </label>
+                </div>
+
+                <div class="option-item">
+                    <label for="autoCopyDecodedText">
+                        <input id="autoCopyDecodedText" type="checkbox" checked/>
+                        <i class="fas fa-clipboard-check"></i>
+                        نسخ تلقائي للنص المفكوك
+                    </label>
+                </div>
+
+                <div class="option-item">
+                    <label for="showNotifications">
+                        <input id="showNotifications" type="checkbox" checked/>
+                        <i class="fas fa-bell"></i>
+                        عرض الإشعارات
+                    </label>
+                </div>
+                
+                <div class="option-item">
+                    <label for="useEncrypt">
+                        <input id="useEncrypt" type="checkbox"/>
+                        <i class="fas fa-lock"></i>
+                        تشفير بكلمة سر
+                    </label>
+                </div>
+                
+                <div id="passwordSection" class="hidden" style="margin-top: 1rem;">
+                    <label for="password">كلمة السر</label>
+                    <div style="position: relative;">
+                        <input id="password" type="password" placeholder="أدخل كلمة السر القوية"/>
+                        <button id="togglePassword" type="button" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
+                            <i class="far fa-eye"></i>
+                        </button>
+                    </div>
+                    
+                    <div style="margin-top: 0.75rem;">
+                        <label for="encryptionStrength">قوة التشفير</label>
+                        <select id="encryptionStrength" style="width: 100%; padding: 0.5rem; margin-top: 0.25rem;">
+                            <option value="low">منخفضة (سريع)</option>
+                            <option value="medium">متوسطة (متوازن)</option>
+                            <option value="high" selected>عالية (آمن)</option>
+                        </select>
+                    </div>
+                    
+                    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: #64748b;">
+                        <div id="passwordStrength" style="margin-bottom: 0.25rem;">قوة كلمة السر: <span style="color: #ef4444;">ضعيفة</span></div>
+                        <div>نصيحة: استخدم 12 حرف على الأقل مع أرقام ورموز</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Cipher Tab -->
+        <div class="card tab-content active" id="cipherTab">
+            <div class="card-header">
+                <i class="fas fa-pencil-alt"></i>
+                <h2>التشفير وفك التشفير</h2>
+            </div>
+            
+            <!-- Input Section -->
+            <div style="margin-bottom: 1.5rem;">
+                <div class="input-actions">
+                    <button id="pasteBtn" class="icon-btn" title="لصق">
+                        <i class="fas fa-paste"></i>
+                    </button>
+                    <button id="qrBtn" class="icon-btn" title="رمز QR">
+                        <i class="fas fa-qrcode"></i>
+                    </button>
+                    <button id="deleteBtn" class="icon-btn" title="حذف الكل">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <label for="inputText">النص المراد تشفيره أو فك تشفيره</label>
+                <textarea id="inputText" placeholder="أدخل النص هنا..." style="width: 100%; min-height: 180px; margin-bottom: 0.75rem; margin-top: 0.5rem;"></textarea>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div style="font-size: 0.875rem; color: #64748b;">
+                        <span id="charCount">0</span> حرف
+                    </div>
+                    <div style="font-size: 0.875rem; color: #64748b;">
+                        <span id="sizeEstimate">~0 بايت</span> مضغوط
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Emoji Selection -->
+            <div style="margin-bottom: 1.5rem;">
+                <label>اختر إيموجي الحاوية</label>
+                
+                <div class="emoji-slider-container">
+                    <button class="slider-control prev" title="السابق">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    
+                    <div class="emoji-slider" id="emojiSlider">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                    
+                    <button class="slider-control next" title="التالي">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                </div>
+                
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                    <input id="customChar" placeholder="أو اكتب رمز مخصص" style="flex: 1;"/>
+                    <button id="addCustomEmoji" class="btn-secondary">إضافة</button>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                <button id="encodeBtn" class="btn-primary" style="flex: 1;">
+                    <i class="fas fa-lock"></i>
+                    تشفير النص
+                </button>
+                <button id="decodeBtn" class="btn-secondary" style="flex: 1;">
+                    <i class="fas fa-unlock"></i>
+                    فك التشفير
+                </button>
+                <button id="decodeMultipleBtn" class="btn-secondary" style="flex: 1;">
+                    <i class="fas fa-search-plus"></i>
+                    فك تشفير متعدد
+                </button>
+            </div>
+            
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <div class="card-header">
+                    <i class="fas fa-code"></i>
+                    <h3>النتيجة</h3>
+                </div>
+                
+                <textarea id="output" placeholder="النتيجة ستظهر هنا..." readonly style="width: 100%; min-height: 120px; margin-bottom: 1rem;"></textarea>
+
+                <!-- Statistics -->
+                <div id="statsSection" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+                    <div style="background: rgba(59, 130, 246, 0.1); padding: 0.75rem; border-radius: 0.75rem;">
+                        <div style="font-size: 0.75rem; color: #2563eb;">الحجم الأصلي</div>
+                        <div id="originalSize" style="font-weight: bold;">0 بايت</div>
+                    </div>
+                    <div style="background: rgba(16, 185, 129, 0.1); padding: 0.75rem; border-radius: 0.75rem;">
+                        <div style="font-size: 0.75rem; color: #059669;">بعد المعالجة</div>
+                        <div id="compressedSize" style="font-weight: bold;">0 بايت</div>
+                    </div>
+                </div>
+                
+                <!-- Copy and Share Buttons -->
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <button id="copyBtn" class="btn-secondary" style="flex: 1;">
+                        <i class="far fa-copy"></i>
+                        نسخ النتيجة
+                    </button>
+                    <button id="shareBtn" class="btn-primary" style="flex: 1;">
+                        <i class="fas fa-share-alt"></i>
+                        مشاركة
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- History Tab -->
+        <div class="card tab-content" id="historyTab">
+            <div class="card-header">
+                <i class="fas fa-history"></i>
+                <h2>سجل التشفير</h2>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <span id="historyCount">0 عنصر محفوظ</span>
+                <button id="clearHistory" class="btn-secondary" style="background: #ef4444;">
+                    <i class="fas fa-trash"></i> مسح السجل
+                </button>
+            </div>
+            
+            <div id="historyList" style="max-height: 500px; overflow-y: auto;">
+                <!-- Will be populated by JavaScript -->
+            </div>
+            
+            <p id="emptyHistory" style="text-align: center; padding: 2.5rem 0; color: #64748b;">
+                <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 0.5rem; display: block;"></i>
+                لا توجد عناصر في السجل بعد
+            </p>
+        </div>
+        
+        <!-- Settings Tab -->
+        <div class="card tab-content" id="settingsTab">
+            <div class="card-header">
+                <i class="fas fa-cog"></i>
+                <h2>الإعدادات</h2>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div>
+                    <h3 style="margin-bottom: 0.75rem;">إعدادات الثيم</h3>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <div class="setting-item">
+                            <label for="autoThemeToggle">الوضع التلقائي</label>
+                            <label class="switch">
+                                <input type="checkbox" id="autoThemeToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label for="darkThemeToggle">الوضع الداكن دائماً</label>
+                            <label class="switch">
+                                <input type="checkbox" id="darkThemeToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 style="margin-bottom: 0.75rem;">إعدادات الخط</h3>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label for="fontSizeSelector">حجم الخط</label>
+                        <select id="fontSizeSelector" style="width: 100%; padding: 0.75rem; margin-top: 0.5rem;">
+                            <option value="14px">صغير جداً (14px)</option>
+                            <option value="16px" selected>صغير (16px)</option>
+                            <option value="18px">متوسط (18px)</option>
+                            <option value="20px">كبير (20px)</option>
+                            <option value="22px">كبير جداً (22px)</option>
+                            <option value="24px">ضخم (24px)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 style="margin-bottom: 0.75rem;">ثيمات الألوان</h3>
+                    <select id="themeSelector" style="width: 100%; padding: 0.75rem; margin-bottom: 0.75rem;">
+                        <option value="default">🌟 افتراضي (أزرق بنفسجي)</option>
+                        <option value="blue-sky">☁️ سماء زرقاء</option>
+                        <option value="green-forest">🌲 غابة خضراء</option>
+                        <option value="purple-dream">💜 حلم أرجواني</option>
+                        <option value="sunset-glow">🌅 توهج الغروب</option>
+                        <option value="cyber-pink">💖 سايبر وردي</option>
+                        <option value="elegant-night">🌙 ليل أنيق</option>
+                        <option value="nature-calm">🍃 طبيعة هادئة</option>
+                    </select>
+                    
+                    <div>
+                        <label>معاينة الثيم</label>
+                        <div id="themePreview" style="padding: 1rem; border-radius: 0.75rem; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; text-align: center; margin-top: 0.5rem;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <i class="fas fa-palette"></i>
+                                <span>معاينة الثيم المختار</span>
+                            </div>
+                            <div style="display: flex; justify-content: center; gap: 0.5rem;">
+                                <div style="width: 1rem; height: 1rem; border-radius: 50%; background: rgba(255,255,255,0.8);"></div>
+                                <div style="width: 1rem; height: 1rem; border-radius: 50%; background: rgba(255,255,255,0.6);"></div>
+                                <div style="width: 1rem; height: 1rem; border-radius: 50%; background: rgba(255,255,255,0.4);"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Emoji Management Tab -->
+        <div class="card tab-content" id="emojiTab">
+            <div class="card-header">
+                <i class="fas fa-smile"></i>
+                <h2>إدارة الإيموجي</h2>
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="newEmoji">إضافة إيموجي جديد</label>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                    <input id="newEmoji" placeholder="أدخل إيموجي جديد" style="flex: 1;"/>
+                    <button id="addEmojiBtn" class="btn-primary">إضافة</button>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label>الإيموجيات المفضلة</label>
+                <div id="customEmojiList" style="background: #f8fafc; border-radius: 0.75rem; padding: 0.75rem; min-height: 100px; max-height: 300px; overflow-y: auto; margin-top: 0.5rem;">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <button id="resetEmoji" class="btn-secondary" style="width: 100%; background: #ef4444;">
+                <i class="fas fa-undo"></i> إعادة تعيين الإيموجي الافتراضية
+            </button>
+        </div>
+        
+        <!-- Help Tab -->
+        <div class="card tab-content" id="helpTab">
+            <div class="card-header">
+                <i class="fas fa-question-circle"></i>
+                <h2>المساعدة</h2>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <h3 style="margin-bottom: 0.5rem;">كيفية الاستخدام</h3>
+                    <ol style="padding-right: 1.25rem; color: #64748b; font-size: 0.875rem; line-height: 1.6;">
+                        <li>أدخل النص الذي تريد تشفيره في مربع الإدخال</li>
+                        <li>اختر إيموجي ليكون غلافاً للنص المشفر</li>
+                        <li>اضغط ��لى زر "تشفير النص"</li>
+                        <li>استخدم النتيجة المشفرة في أي مكان تريد</li>
+                        <li>لفك التشفير، الصق النص المشفر واضغط على "فك التشفير"</li>
+                    </ol>
+                </div>
+                
+                <div>
+                    <h3 style="margin-bottom: 0.5rem;">نصائح مهمة</h3>
+                    <ul style="padding-right: 1.25rem; color: #64748b; font-size: 0.875rem; line-height: 1.6;">
+                        <li>احفظ كلمة السر في مكان آمن إذا استخدمت التشفير</li>
+                        <li>يمكنك إضافة إيموجي مخصص عن طريق كتابته في الحقل المخصص</li>
+                        <li>استخدم الضغط لتقليل حجم النص المشفر</li>
+                        <li>يمكنك تعديل الإعدادات حسب تفضيلاتك</li>
+                        <li>التطبيق يعمل بدون اتصال بالإنترنت بعد التحميل الأول</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 style="margin-bottom: 0.5rem;">اختصارات لوحة المفاتيح</h3>
+                    <div style="font-size: 0.875rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                            <span>Ctrl + Enter</span>
+                            <span style="color: #64748b;">تشفير النص</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                            <span>Ctrl + Shift + Enter</span>
+                            <span style="color: #64748b;">فك التشفير</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                            <span>Escape</span>
+                            <span style="color: #64748b;">إغلاق القائمة</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>F1</span>
+                            <span style="color: #64748b;">فتح المساعدة</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 style="margin-bottom: 0.5rem;">معلومات التطبيق</h3>
+                    <div style="font-size: 0.875rem; color: #64748b;">
+                        <p><strong>الإصدار:</strong> 2.0.0 (محسن)</p>
+                        <p><strong>تاريخ الإنشاء:</strong> 2024</p>
+                        <p><strong>المطور:</strong> Emoji Cipher Pro Team</p>
+                        <p><strong>الترخيص:</strong> MIT License</p>
+                        <p><strong>الميزات:</strong> يعمل بدون إنترنت، تشفير آمن، ضغط البيانات</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Code Modals -->
+    <div id="qrModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 class="modal-title">رمز QR Code</h3>
+            <div id="qrcode-container"></div>
+            <button id="closeQrModal" class="btn-secondary">إغلاق</button>
+        </div>
+    </div>
+
+    <div id="scannerModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 class="modal-title">مسح رمز QR Code</h3>
+            <div class="scanner-container">
+                <video id="scannerVideo" playsinline></video>
+                <canvas id="scannerCanvas" class="hidden"></canvas>
+            </div>
+            <p id="scannerMessage">وجّه الكاميرا نحو رمز QR</p>
+            <button id="closeScannerModal" class="btn-secondary">إلغاء</button>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNg3 डोमेन owner="[REDACTED]" davidshimjs/qrcodejs" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" integrity="sha256-gPAvoV0v4T4YyH3ySqM2I/2vDkd02qP6+D3q6yZ02rA=" crossorigin="anonymous"></script>
+    <script src="./assets/js/app.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(function(err) {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
