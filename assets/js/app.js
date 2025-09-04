@@ -560,12 +560,22 @@ async function decodeText() {
         }
     }
 
-    // If multiple messages were found, display them
+    // If messages were found
     if (decodedCount > 0) {
-        output.value = `--- تم العثور على ${decodedCount} رسالة ---\n\n` + decodedOutputs.join('\n\n----------\n\n');
+        if (decodedCount === 1) {
+            // If only one message, display it cleanly
+            output.value = decodedOutputs[0];
+            showToast(`تم فك تشفير رسالة واحدة بنجاح.`, 'success');
+            if (appSettings.autoCopyDecodedText) {
+                await copyToClipboard(output.value);
+            }
+        } else {
+            // If multiple messages, display with header
+            output.value = `--- تم العثور على ${decodedCount} رسالة ---\n\n` + decodedOutputs.join('\n\n----------\n\n');
+            showToast(`تم فك تشفير ${decodedCount} رسالة بنجاح.`, 'success');
+        }
         output.classList.add('has-content');
         updateStats(totalOriginalSize, totalCompressedSize, output.value.length);
-        showToast(`تم فك تشفير ${decodedCount} رسالة بنجاح.`, 'success');
         showResultsSection();
     } else {
         // If no multiple messages were found, try to decode the whole string as a single message
