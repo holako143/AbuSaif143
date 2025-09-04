@@ -5,11 +5,6 @@
 const $ = (id) => document.getElementById(id);
 const defaultEmojis = ['😎', '✨', '❤️', '🔒', '🔥', '🌟', '🎯', '💡', '🚀', '💎', '📌', '✅', '⚡', '🌈', '🌠'];
 
-// QR Code Globals
-let qrcode = null;
-let videoStream = null;
-let animationFrameId = null;
-
 // ========== Helper Functions ==========
 // Helper functions for robust Base64 encoding/decoding to handle binary data correctly
 function bytesToBase64(bytes) {
@@ -1275,36 +1270,9 @@ function setupEventListeners() {
     // Input action buttons
     const deleteBtn = $('deleteBtn');
     const pasteBtn = $('pasteBtn');
-    const qrBtn = $('qrBtn');
 
     if (deleteBtn) deleteBtn.addEventListener('click', clearInput);
     if (pasteBtn) pasteBtn.addEventListener('click', pasteFromClipboard);
-    if (qrBtn) qrBtn.addEventListener('click', handleQrButtonClick);
-
-    // QR Modal listeners
-    const closeQrModal = $('closeQrModal');
-    const closeScannerModal = $('closeScannerModal');
-    const qrModal = $('qrModal');
-    const scannerModal = $('scannerModal');
-
-    if (closeQrModal) closeQrModal.addEventListener('click', () => qrModal.classList.add('hidden'));
-    if (closeScannerModal) closeScannerModal.addEventListener('click', stopScanner);
-
-    // Close modal on overlay click
-    if (qrModal) {
-        qrModal.addEventListener('click', (e) => {
-            if (e.target === qrModal) {
-                qrModal.classList.add('hidden');
-            }
-        });
-    }
-    if (scannerModal) {
-        scannerModal.addEventListener('click', (e) => {
-            if (e.target === scannerModal) {
-                stopScanner();
-            }
-        });
-    }
 
     // Text input monitoring
     const inputText = $('inputText');
@@ -1647,123 +1615,6 @@ async function pasteFromClipboard() {
         console.error('Failed to read clipboard contents: ', err);
         showToast('فشل في قراءة الحافظة. يرجى منح الإذن.', 'error');
     }
-}
-
-function handleQrButtonClick() {
-    const output = $('output');
-    if (output && output.value.trim() !== '') {
-        generateQRCode();
-    } else {
-        openScanner();
-    }
-}
-
-function generateQRCode() {
-    const output = $('output');
-    const qrContainer = $('qrcode-container');
-    const qrModal = $('qrModal');
-    if (!output || !qrContainer || !qrModal) return;
-
-    const text = output.value;
-    if (text.length === 0) {
-        showToast('لا يوجد محتوى لإنشاء رمز QR', 'warning');
-        return;
-    }
-
-    qrContainer.innerHTML = ''; // Clear previous QR code
-
-    try {
-        qrcode = new QRCode(qrContainer, {
-            text: text,
-            width: 256,
-            height: 256,
-            colorDark : "#000000",
-            colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.H
-        });
-        qrModal.classList.remove('hidden');
-    } catch (err) {
-        console.error("QR Code generation failed: ", err);
-        showToast('فشل في إنشاء رمز QR', 'error');
-    }
-}
-
-function openScanner() {
-    const scannerModal = $('scannerModal');
-    const video = $('scannerVideo');
-    const scannerMessage = $('scannerMessage');
-
-    if (!scannerModal || !video || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        showToast('متصفحك لا يدعم الوصول للكاميرا.', 'error');
-        return;
-    }
-
-    scannerModal.classList.remove('hidden');
-    scannerMessage.textContent = 'جاري طلب الوصول إلى الكاميرا...';
-
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-        .then(function(stream) {
-            videoStream = stream;
-            video.srcObject = stream;
-            video.play();
-            scannerMessage.textContent = 'وجّه الكاميرا نحو رمز QR';
-            animationFrameId = requestAnimationFrame(tick);
-        })
-        .catch(function(err) {
-            console.error("Error accessing camera: ", err);
-            scannerMessage.textContent = 'فشل الوصول إلى الكاميرا. يرجى منح الإذن.';
-            showToast('فشل الوصول إلى الكاميرا', 'error');
-        });
-}
-
-function stopScanner() {
-    if (videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
-        videoStream = null;
-    }
-    if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-        animationFrameId = null;
-    }
-    const scannerModal = $('scannerModal');
-    if (scannerModal) {
-        scannerModal.classList.add('hidden');
-    }
-}
-
-function tick() {
-    const video = $('scannerVideo');
-    const canvasElement = $('scannerCanvas');
-    const canvas = canvasElement.getContext('2d');
-    const inputText = $('inputText');
-    const scannerMessage = $('scannerMessage');
-
-    if (!video || !canvasElement || !inputText || !scannerMessage) return;
-
-    if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvasElement.height = video.videoHeight;
-        canvasElement.width = video.videoWidth;
-        canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-
-        try {
-            const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                inversionAttempts: "dontInvert",
-            });
-
-            if (code && code.data) {
-                scannerMessage.textContent = `تم العثور على رمز!`;
-                showToast('تم العثور على رمز QR بنجاح!', 'success');
-                inputText.value = code.data;
-                updateCharCount();
-                stopScanner();
-                return;
-            }
-        } catch (e) {
-            console.error("jsQR error: ", e);
-        }
-    }
-    animationFrameId = requestAnimationFrame(tick);
 }
 
 function applySettings() {
