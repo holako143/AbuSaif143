@@ -8,6 +8,8 @@ const urlsToCache = [
   './manifest.json',
   './assets/css/app.css',
   './assets/js/app.js',
+  './assets/js/qrcode.min.js',
+  './assets/js/jsQR.js',
   './assets/fonts/fa-solid-900.woff2',
   './assets/fonts/fa-regular-400.woff2',
   './assets/fonts/fa-brands-400.woff2',
