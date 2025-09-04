@@ -1,13 +1,22 @@
 // Emoji Cipher Pro - Service Worker
 // تطبيق تشفير الإيموجي - عامل الخدمة للعمل بدون إنترنت
 
-const CACHE_NAME = 'emoji-cipher-pro-v2.0.0';
+const CACHE_NAME = 'emoji-cipher-pro-v2.1.0'; // Version bump to trigger update
 const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
   './assets/css/app.css',
   './assets/js/app.js',
+  // Add all the new modules to the cache
+  './assets/js/modules/config.js',
+  './assets/js/modules/crypto.js',
+  './assets/js/modules/dom.js',
+  './assets/js/modules/events.js',
+  './assets/js/modules/handlers.js',
+  './assets/js/modules/state.js',
+  './assets/js/modules/ui.js',
+  './assets/js/modules/ui_handlers.js',
   './assets/fonts/fa-solid-900.woff2',
   './assets/fonts/fa-regular-400.woff2',
   './assets/fonts/fa-brands-400.woff2',
