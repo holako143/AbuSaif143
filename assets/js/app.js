@@ -222,11 +222,20 @@ class AdvancedEncryption {
     }
 
     static async encrypt(data, password, strength = 'high') {
-        const iterations = {
-            'low': 50000,
-            'medium': 100000,
-            'high': 200000
-        }[strength] || 100000;
+        const useCustom = $('useCustomIterations')?.checked;
+        const customIterations = parseInt($('customIterations')?.value, 10);
+        let iterations;
+
+        if (useCustom && customIterations >= 10000) {
+            iterations = customIterations;
+            showToast(`باستخدام ${iterations.toLocaleString()} دورة مخصصة.`, 'info');
+        } else {
+            iterations = {
+                'low': 50000,
+                'medium': 100000,
+                'high': 200000
+            }[strength] || 100000;
+        }
 
         const salt = crypto.getRandomValues(new Uint8Array(32));
         const iv = crypto.getRandomValues(new Uint8Array(16));
@@ -1405,6 +1414,18 @@ function setupEventListeners() {
     if (useEncrypt && passwordSection) {
         useEncrypt.addEventListener('change', (e) => {
             passwordSection.classList.toggle('hidden', !e.target.checked);
+        });
+    }
+
+    const useCustomIterations = $('useCustomIterations');
+    const customIterationsSection = $('customIterationsSection');
+    const encryptionStrengthSelect = $('encryptionStrength');
+
+    if (useCustomIterations && customIterationsSection && encryptionStrengthSelect) {
+        useCustomIterations.addEventListener('change', (e) => {
+            const useCustom = e.target.checked;
+            customIterationsSection.classList.toggle('hidden', !useCustom);
+            encryptionStrengthSelect.disabled = useCustom;
         });
     }
 

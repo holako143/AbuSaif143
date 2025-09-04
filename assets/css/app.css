@@ -56,6 +56,7 @@
 .fa-exclamation-triangle::before { content: "\f071"; }
 .fa-history::before { content: "\f1da"; }
 .fa-cog::before { content: "\f013"; }
+.fa-cogs::before { content: "\f085"; }
 .fa-smile::before { content: "\f118"; }
 .fa-question-circle::before { content: "\f059"; }
 .fa-compress-alt::before { content: "\f422"; }
@@ -64,6 +65,8 @@
 .fa-code::before { content: "\f121"; }
 .fa-trash::before { content: "\f1f8"; }
 .fa-inbox::before { content: "\f01c"; }
+.fa-paste::before { content: "\f0ea"; }
+.fa-share-alt::before { content: "\f1e0"; }
 .fa-palette::before { content: "\f53f"; }
 .fa-undo::before { content: "\f0e2"; }
 .fa-chevron-right::before { content: "\f054"; }

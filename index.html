@@ -146,6 +146,20 @@
                             <div id="passwordStrength" style="margin-bottom: 0.25rem;">قوة كلمة السر: <span style="color: #ef4444;">ضعيفة</span></div>
                             <div>نصيحة: استخدم 12 حرف على الأقل مع أرقام ورموز</div>
                         </div>
+                    <div class="option-item" style="margin-top: 0.75rem; background: transparent; border: none; padding: 0;">
+                        <label for="useCustomIterations">
+                            <input id="useCustomIterations" type="checkbox"/>
+                            <i class="fas fa-cogs"></i>
+                            تحديد دورات مخصصة
+                        </label>
+                    </div>
+                    <div id="customIterationsSection" class="hidden" style="margin-top: 0.5rem;">
+                        <label for="customIterations">عدد الدورات (الأمان)</label>
+                        <input id="customIterations" type="number" min="10000" step="1000" placeholder="e.g., 250000"/>
+                        <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">
+                            القيمة الموصى بها: 100,000 أو أعلى.
+                        </div>
+                    </div>
                     </div>
                 </div>
             </div>
